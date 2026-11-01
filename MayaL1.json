@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2A45CC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Carnet L1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%232A45CC%27/%3E%3Cpath d=%27M18 33l9 9 19-20%27 fill=%27none%27 stroke=%27%23FFE24D%27 stroke-width=%278%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E">
+<title>L1 - carnet de suivi de Maya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap">
+<style>
+/* Layout : un cahier à deux colonnes, sommaire des matières à gauche, page de la matière à droite ; sur téléphone, le sommaire devient un bandeau de pastilles */
+:root{
+  --bg:#F2F4FA; --surface:#FFFFFF; --sunk:#E9ECF5; --ink:#17203F; --muted:#59617F; --line:#D9DEEC;
+  --accent:#2A45CC; --accent-soft:#E4E8FB;
+  --done:#14805A; --done-soft:#DFF2E9;
+  --hl:#FFE24D; --hl-ink:#584600; --hl-bar:#E3BC12; --hl-soft:#FFF5BF;
+  --late:#BE322B; --late-soft:#FBE5E3;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1120; --surface:#161A2B; --sunk:#1D2236; --ink:#E5E8F4; --muted:#98A0BE; --line:#293049;
+  --accent:#93A6FF; --accent-soft:#222A4C;
+  --done:#4CC491; --done-soft:#163127;
+  --hl:#6E5C10; --hl-ink:#F3D85C; --hl-bar:#E0C24A; --hl-soft:#2C2711;
+  --late:#FF8C82; --late-soft:#3A1D1C;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0E1120; --surface:#161A2B; --sunk:#1D2236; --ink:#E5E8F4; --muted:#98A0BE; --line:#293049;
+  --accent:#93A6FF; --accent-soft:#222A4C;
+  --done:#4CC491; --done-soft:#163127;
+  --hl:#6E5C10; --hl-ink:#F3D85C; --hl-bar:#E0C24A; --hl-soft:#2C2711;
+  --late:#FF8C82; --late-soft:#3A1D1C;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.app{max-width:1200px;margin:0 auto;padding-block:22px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* En-tête */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 28px;padding-bottom:20px;border-bottom:2px solid var(--ink);margin-bottom:24px}
+.brand h1{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,5vw,40px);line-height:1;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.brand h1 .mk{background:linear-gradient(transparent 58%,var(--hl) 58%,var(--hl) 92%,transparent 92%);padding:0 .08em}
+.brand p{margin:8px 0 0;color:var(--muted)}
+.kpis{display:flex;flex-wrap:wrap;gap:8px 22px;align-items:flex-end}
+.kpi{display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi b{font-family:var(--f-display);font-size:24px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.kpi.done b{color:var(--done)} .kpi.rev b{color:var(--hl-ink)}
+.sync{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);white-space:nowrap}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.sync.ok i{background:var(--done)} .sync.warn i{background:var(--hl-ink)} .sync.err i{background:var(--late)}
+.banner{margin:-8px 0 20px;padding:10px 14px;border-radius:var(--r);background:var(--accent-soft);font-size:14px}
+
+/* Grille */
+.shell{display:grid;grid-template-columns:250px minmax(0,1fr);gap:32px;align-items:start}
+.nav{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);display:flex;flex-direction:column;gap:2px}
+.ngrp{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:16px 10px 4px;font-weight:700}
+.nv{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:2px 10px;padding:8px 10px;border-radius:8px;color:var(--ink);text-decoration:none}
+.nv:hover{background:var(--sunk)}
+.nv.cur{background:var(--surface);box-shadow:inset 3px 0 0 var(--accent),0 1px 2px rgba(20,30,60,.08)}
+.nv .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nv .frac{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.nv .mini{grid-column:1/-1;height:3px;border-radius:2px;background:var(--line);display:flex;overflow:hidden}
+.nv .cnt{font-size:12px;font-weight:700;background:var(--hl);color:var(--hl-ink);border-radius:999px;padding:0 8px;font-variant-numeric:tabular-nums}
+.inc{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--hl-ink);margin-left:6px;vertical-align:middle}
+.bar{display:flex;height:100%;width:100%}
+.bar .d{background:var(--done)} .bar .r{background:var(--hl-bar)}
+
+@media (max-width:860px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:18px}
+  .nav{position:static;flex-direction:row;overflow-x:auto;gap:6px;padding-bottom:6px;margin-inline:-4px;padding-inline:4px;scrollbar-width:thin}
+  .ngrp{display:none}
+  .nv{display:flex;flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px}
+  .nv .mini{display:none}
+  .nv.cur{box-shadow:none;border-color:var(--accent);background:var(--accent-soft)}
+}
+
+/* Contenu */
+main{min-width:0}
+.h2{font-family:var(--f-display);font-weight:700;font-size:clamp(22px,3.4vw,30px);letter-spacing:-.015em;line-height:1.15;margin:0;text-wrap:balance}
+.h3{font-family:var(--f-display);font-weight:700;font-size:18px;margin:0 0 12px;letter-spacing:-.01em}
+.eyebrow{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px}
+.chead{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);background:var(--surface);white-space:nowrap}
+.tag.inc-t{border-color:transparent;background:var(--hl-soft);color:var(--hl-ink)}
+.tag.ok-t{border-color:transparent;background:var(--done-soft);color:var(--done)}
+.prog{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.prog .track{flex:1 1 220px;height:10px;border-radius:5px;background:var(--line);overflow:hidden;min-width:160px}
+.prog .lbl{font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.prog .lbl b{color:var(--ink)}
+
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 14px}
+.fb{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13.5px}
+.fb[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.fb .n{opacity:.7;font-variant-numeric:tabular-nums;margin-left:4px}
+
+.cnote{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);margin-bottom:16px}
+.cnote summary{cursor:pointer;padding:10px 14px;font-weight:700;font-size:14px;list-style:none;display:flex;align-items:center;gap:8px}
+.cnote summary::-webkit-details-marker{display:none}
+.cnote summary .pv{font-weight:400;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.cnote .in{padding:0 14px 12px}
+
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.grp + .grp, .sheet > .row + .grp, .sheet > .grp + .row{border-top:1px solid var(--line)}
+.ghead{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;background:var(--sunk);border:0;padding:10px 14px}
+.grp .grp .ghead{background:transparent;padding-top:12px;padding-bottom:4px}
+.ghead .chev{flex:0 0 auto;margin-top:3px;transition:transform .15s;color:var(--muted)}
+.grp.closed > .ghead .chev{transform:rotate(-90deg)}
+.ghead .gt{flex:1;min-width:0}
+.ghead .gt b{font-family:var(--f-display);font-weight:700;font-size:15.5px;letter-spacing:-.005em;display:block;text-wrap:balance}
+.grp .grp .ghead .gt b{font-family:var(--f-body);font-size:14.5px}
+.ghead .gt small{display:block;color:var(--muted);font-size:13px;margin-top:1px}
+.ghead .gc{flex:0 0 auto;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
+.ghead .gc.all{color:var(--done);font-weight:700}
+.gbody{padding-left:0}
+.grp .grp .gbody{margin-left:22px;border-left:2px solid var(--line)}
+.grp.closed > .gbody{display:none}
+.k{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-right:8px;white-space:nowrap}
+
+.row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;align-items:start;padding:10px 14px}
+.gbody > .row + .row, .sheet > .row + .row, .list > .row + .row{border-top:1px solid var(--line)}
+.chk{width:26px;height:26px;border-radius:50%;border:2px solid var(--muted);background:transparent;display:grid;place-items:center;color:transparent;padding:0;margin-top:-1px;transition:background .12s,border-color .12s}
+.chk:hover{border-color:var(--done)}
+.s-done .chk{background:var(--done);border-color:var(--done);color:var(--surface)}
+.s-review .chk{border-color:var(--hl-ink)}
+.body{min-width:0}
+.title{overflow-wrap:anywhere}
+.s-done .title .t{color:var(--muted)}
+.s-review .title .t{background:linear-gradient(transparent 52%,var(--hl) 52%,var(--hl) 94%,transparent 94%);-webkit-box-decoration-break:clone;box-decoration-break:clone;padding:0 2px}
+.pg{font-size:12px;color:var(--muted);margin-left:8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.xt{font-size:11px;color:var(--accent);border:1px solid var(--accent-soft);border-radius:4px;padding:0 5px;margin-left:8px;white-space:nowrap}
+.meta{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:12.5px;color:var(--muted);margin-top:3px}
+.badge{font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--sunk);color:var(--muted);white-space:nowrap}
+.badge.late{background:var(--late-soft);color:var(--late)}
+.badge.soon{background:var(--hl-soft);color:var(--hl-ink)}
+.badge.ok{background:var(--done-soft);color:var(--done)}
+.when{font-size:12px;color:var(--muted)}
+.npv{margin:4px 0 0;font-size:13.5px;color:var(--muted);font-style:italic;white-space:pre-line;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.acts{display:flex;gap:4px;align-items:center}
+.ab{display:inline-flex;align-items:center;gap:6px;border:1px solid transparent;background:transparent;border-radius:8px;padding:5px 8px;font-size:13px;color:var(--muted);position:relative;min-height:34px}
+.ab:hover{background:var(--sunk);color:var(--ink)}
+.ab[aria-pressed="true"].rv{background:var(--hl);color:var(--hl-ink);font-weight:700}
+.ab[aria-expanded="true"]{background:var(--accent-soft);color:var(--accent)}
+.ab .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);position:absolute;top:5px;right:4px}
+.ab.del{color:var(--late)}
+.ab.del.confirm{background:var(--late-soft);font-weight:700}
+.ned{grid-column:2/-1;margin-top:6px}
+textarea{width:100%;min-height:84px;resize:vertical;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:9px 11px;line-height:1.45}
+textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.nfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px;font-size:12px;color:var(--muted)}
+.lnk{border:0;background:transparent;color:var(--accent);font-size:13px;padding:2px 4px}
+
+.addf{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding:12px 14px;border:1px dashed var(--line);border-radius:var(--r)}
+.addf label{font-size:13px;color:var(--muted);flex:0 0 100%}
+.addf select,.addf input{border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:7px 10px;min-width:0}
+.addf select{flex:0 1 230px;max-width:100%}
+.addf input{flex:1 1 220px}
+.btn{border:0;background:var(--accent);color:var(--surface);border-radius:8px;padding:8px 14px;font-weight:700}
+.btn:disabled{opacity:.5;cursor:default}
+.empty{padding:22px 16px;color:var(--muted);text-align:center}
+
+/* Vue d'ensemble */
+.ov{display:flex;flex-direction:column;gap:30px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:520px){.cards{grid-template-columns:minmax(0,1fr)}}
+.card{display:flex;flex-direction:column;gap:10px;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);text-decoration:none;color:var(--ink);transition:border-color .12s,transform .12s}
+.card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.card .cg{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.card .cn{font-family:var(--f-display);font-weight:700;font-size:17px;line-height:1.2}
+.card .track{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.card .cs{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.card .cs b{color:var(--ink)}
+.card .cs .rv{color:var(--hl-ink);font-weight:700}
+.tl{display:flex;flex-direction:column}
+.tli{display:grid;grid-template-columns:92px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 14px}
+.tli + .tli{border-top:1px solid var(--line)}
+.tli .dd{font-family:var(--f-display);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+.tli .dd small{display:block;font-family:var(--f-body);font-weight:400;font-size:11.5px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.tli .tt{min-width:0}
+.tli.is-done .tt{color:var(--muted)}
+.crs{font-size:12px;color:var(--muted);text-decoration:none;display:inline-block;margin-bottom:2px}
+.crs:hover{color:var(--accent)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);margin-top:4px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+@media (max-width:560px){
+  .ab .lb{display:none}
+  .ab{padding:5px 7px}
+  .row{gap:4px 10px;padding:10px 12px}
+  .tli{grid-template-columns:70px minmax(0,1fr)}
+  .tli .badge{grid-column:2}
+  .grp .grp .gbody{margin-left:10px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+/* Connexion */
+.login{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(6px);padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.login form{width:min(380px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 12px 40px rgba(15,20,45,.18)}
+.login h2{font-family:var(--f-display);font-weight:800;font-size:24px;margin:0;letter-spacing:-.015em}
+.login p{margin:0;color:var(--muted);font-size:14px}
+.login label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.login input{border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:10px 12px;font-size:16px}
+.login input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.login .err{color:var(--late);font-size:13.5px;min-height:1.2em}
+.foot{margin-top:32px;padding-top:14px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px;color:var(--muted)}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>L1 - carnet de suivi de <span class="mk">Maya</span></h1>
+      <p id="today">Tous tes cours : ce qui est fait, ce qui reste, ce qu’il faut revoir.</p>
+    </div>
+    <div class="kpis" id="kpis"></div>
+  </header>
+  <div id="banner" class="banner" hidden></div>
+  <div class="shell">
+    <nav class="nav" id="nav" aria-label="Matières"></nav>
+    <main id="main" aria-live="polite"></main>
+  </div>
+  <footer class="foot"><span>Les coches et les notes se synchronisent entre tous tes appareils.</span><button class="lnk" id="logout" type="button">Se déconnecter</button></footer>
+</div>
+
+<div class="login" id="login" hidden>
+  <form id="loginf" autocomplete="on">
+    <h2>Bonjour Maya</h2>
+    <p>Connecte-toi une fois sur cet appareil pour retrouver ton carnet partout.</p>
+    <label for="lg-email">Adresse e-mail<input id="lg-email" type="email" autocomplete="username" required></label>
+    <label for="lg-pass">Mot de passe<input id="lg-pass" type="password" autocomplete="current-password" required></label>
+    <span class="err" id="lg-err" role="alert"></span>
+    <button class="btn" id="lg-btn" type="submit">Se connecter</button>
+  </form>
+</div>
+
+
+<!-- =========================================================
+     CONFIGURATION : collez ici les deux codes de votre projet Supabase
+     (Supabase > Project Settings > API)
+     ========================================================= -->
+<script>
+window.CARNET_CONFIG = {
+  url: "https://ksiujtixbmbyqwjswylq.supabase.co",      // ex. https://abcdefghijkl.supabase.co
+  key: "CeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzaXVqdGl4Ym1ieXF3anN3eWxxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM1Mzk2MTQsImV4cCI6MjEwOTExNTYxNH0.PukDyFBUljZ5Djddh_RLw2-fjqvMCAJO-J4WNSaKWSM" // clé « anon public » (ou « publishable »)
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+/* ===================== Programme des cours ===================== */
+const L=(t,m={})=>({t,...m});
+const G=(t,m,c)=>({t,...m,c});
+
+const COURSES=[
+ {id:"anglais",name:"Anglais",group:"Langues",complete:true,items:[
+  L("Self-portraits",{k:"Partie 1",fr:"Autoportraits",open:"2026-09-16",due:"2026-10-11"}),
+  L("In and outside museums",{k:"Partie 2",fr:"Dans et hors des musées",open:"2026-10-01",due:"2026-11-01"}),
+  L("Describing an artwork",{k:"Partie 3",fr:"Décrire une œuvre d’art",open:"2026-10-15",due:"2026-11-22"}),
+  L("Debating about art",{k:"Partie 4",fr:"Débattre sur l’art",open:"2026-10-30",due:"2026-12-08"}),
+  L("Mock exam",{k:"Examen blanc",open:"2026-11-15",due:"2026-12-20"})
+ ]},
+ {id:"francais",name:"Français",group:"Langues",complete:false,items:[
+  L("je, on, nous ou rien ?",{k:"Semaine 2"}),
+  L("bien que ou parce que ?",{k:"Semaine 3"}),
+  L("Une phrase ou deux phrases ?",{k:"Semaine 4"}),
+  L("conjoncture ou conjecture ?",{k:"Semaine 5"}),
+  L("parution, apparition ou apparence ?",{k:"Semaine 6"}),
+  L("de, à, sur et autres petits mots essentiels",{k:"Semaine 7"})
+ ]},
+ {id:"cm-contemporaine",name:"CM Histoire contemporaine",group:"Histoire contemporaine",complete:true,items:[
+  L("Introduction : histoire populaire et moment 1815",{k:"Séance 1"}),
+  G("Le prix des libertés dans l’Europe des monarchies restaurées (1815-années 1870)",{k:"Chapitre 1"},[
+   L("Le règne des propriétaires",{k:"Séance 2"}),
+   L("L’intensification du travail",{k:"Séance 3"}),
+   L("Le renouvellement du patriarcat",{k:"Séance 4"})]),
+  G("Résistances et révolutions (1820-1873)",{k:"Chapitre 2"},[
+   L("Des émeutes aux manifestations",{k:"Séance 5"}),
+   L("Les travailleurs dans les brèches révolutionnaires (années 1820-1851)",{k:"Séance 6"}),
+   L("Face aux Nations impériales : l’adhésion populaire et ses limites (années 1850-1860)",{k:"Séance 7"}),
+   L("Aux marges des consensus impériaux : les voix des subalternes et des opposant.es",{k:"Séance 8"})]),
+  G("Les faces sombres du « progrès » (années 1870-1910)",{k:"Chapitre 3"},[
+   L("Des vies mieux protégées",{k:"Séance 9"}),
+   L("La persistance de la précarité",{k:"Séance 10"}),
+   L("Nationalismes et colonialismes populaires",{k:"Séance 11"}),
+   L("S’organiser pour lutter : féminisme, anarchisme et socialisme",{k:"Séance 12"})])
+ ]},
+ {id:"appro-contemporaine",name:"Approfondissement Histoire contemporaine",short:"Appro. contemporaine",group:"Histoire contemporaine",complete:false,known:"4/8",items:[
+  L("Les mutations du travail ouvrier durant le premier essor industriel"),
+  L("Les débuts de la question sociale"),
+  L("Le temps des révolutions ouvrières"),
+  L("L’apogée du travail agricole et des campagnes"),
+  L("Méthodologie",{k:"Méthode"})
+ ]},
+ {id:"cm-moderne",name:"CM Histoire moderne",group:"Histoire moderne",complete:true,items:[
+  L("Introduction générale"),
+  G("Qu’est-ce qu’une ville à l’époque moderne ?",{k:"Cours 1"},[
+   G("Quelques approches et définitions historiennes du phénomène urbain",{k:"I"},[
+    L("Quelques repères sur l’histoire urbaine"),
+    L("L’approche braudélienne : la prééminence des facteurs économiques et l’intérêt pour la dimension spatiale"),
+    L("Une œuvre majeure : Genèse d’une ville moderne : Caen au XVIIIe siècle (1975) de Jean-Claude Perrot")]),
+   G("Les définitions historiques de la ville et leurs évolutions",{k:"II"},[
+    L("Le paysage urbain au début du XVIIe siècle"),
+    L("La prégnance durable de la définition culturaliste : la ville close"),
+    L("La mise en place d’une nouvelle représentation fonctionnaliste de la ville durant la seconde moitié du XVIIIe siècle : la ville ouverte")])]),
+  G("L’urbanisation de l’Europe moderne (XVIIe-XVIIIe siècles) : rythmes, espaces et logiques",{k:"Cours 2"},[
+   G("Les rythmes et les espaces de l’urbanisation en Europe (XVIIe-XVIIIe siècles)",{k:"I"},[
+    L("L’Europe urbaine en 1600 : une urbanisation inégale"),
+    L("La stagnation urbaine dominante, vers 1650-vers 1750"),
+    L("La croissance urbaine de la seconde moitié du XVIIIe siècle"),
+    L("L’Europe urbaine en 1800")]),
+   G("Les logiques démographiques et les modèles explicatifs de l’urbanisation à la période moderne",{k:"II"},[
+    L("Les logiques démographiques : un solde naturel déficitaire de manière chronique"),
+    L("Les logiques démographiques : la variable essentielle des migrations"),
+    L("Modèle maritime, modèle continental et armatures urbaines préindustrielles"),
+    L("Le poids des facteurs politiques et étatiques : le cas des « villes d’Ancien Régime » en France")])]),
+  G("La diversité croissante des villes et les évolutions urbaines (XVIIe-XVIIIe siècles)",{k:"Cours 3"},[
+   G("Le développement inédit des villes spécialisées",{k:"I"},[
+    L("La promotion des villes de résidence dans le Saint-Empire Romain Germanique"),
+    L("Les villes portuaires de l’Atlantique comme centres urbains spécialisés"),
+    L("L’émergence de la ville industrielle")]),
+   G("Des évolutions différenciées au sein de la hiérarchie urbaine",{k:"II"},[
+    L("Les petites villes, part essentiel du fait urbain : les cas anglais et français"),
+    L("Les aspects du renforcement des capitales d’Etats : croissance démographique et expansion spatiale"),
+    L("Les modalités du renforcement des capitales d’Etats : le cumul des fonctions urbaines"),
+    L("La portée du renforcement des capitales d’Etats : les conséquences sur les espaces environnants")]),
+   G("Les problèmes d’une capitale et la capitale comme problème : le cas emblématique de Naples au XVIIIe siècle",{k:"III"},[
+    L("Un service d’assistance de grande ampleur pour l’approvisionnement en céréales : le système annonaire napolitain et ses limites"),
+    L("Les débats dans la sphère de l’économie politique des Lumières : ville motrice ou ville prédatrice ?"),
+    L("Une gestion de l’assistance prise en charge par la monarchie bourbonienne et une politique urbaine de modernisation")])]),
+  G("Le gouvernement urbain et son exercice",{k:"Cours 4"},[
+   G("Le pouvoir municipal : fondements, champs d’action et sociologie des élites municipales",{k:"I"},[
+    L("Les normes et les valeurs politiques prégnantes de la ville européenne comme cité"),
+    L("Les institutions municipales : fonctionnement et enjeu de luttes politiques"),
+    L("La sociologie du pouvoir municipal et ses évolutions : le cas français"),
+    L("La gestion de la ville : le cas des politiques d’approvisionnement en produits alimentaires"),
+    L("Les hôtels de ville en France : la matérialisation du pouvoir municipal")]),
+   G("Les villes, la bourgeoisie et les pouvoirs territoriaux",{k:"II"},[
+    L("Les bourgeoisies statutaires : une catégorie largement diffusée en Europe"),
+    L("Le modèle de l’Etat dominé par les cités : le cas des Provinces-Unies"),
+    L("Le modèle de l’Etat en expansion avec une intégration progressive des villes : les cas de la France et de la Castille"),
+    L("Les intégrations complexes entre « modèle urbain » et « modèle bureaucratique » : le cas allemand")])]),
+  G("La société urbaine : hiérarchies, régulations, clivages",{k:"Cours 5"},[
+   G("Une société urbaine hiérarchisée et complexe",{k:"I"},[
+    L("Appréhender les sociétés urbaines : les classifications des contemporains"),
+    L("Les caractères généraux de la société urbaine : la double structuration"),
+    L("Le renforcement de la place des noblesses minoritaires et puissantes"),
+    L("Le renforcement de la place du clergé dans les pays catholiques : le cas français"),
+    L("La diversité des élites urbaines"),
+    L("Un ensemble majoritaire et composite : le peuple urbain")]),
+   G("Des sociétés urbaines régulées",{k:"II"},[
+    L("La gestion des pauvres et de la pauvreté : cas de figures différents et évolutions convergentes en Europe"),
+    L("Les politiques d’approvisionnement urbain face aux crises de subsistances : la gestion durant les « années de misère » en France"),
+    L("La police en France au XVIIIe siècle : une territorialisation accrue")]),
+   G("Des sociétés urbaines clivées et perturbées par l’aménagement des cités durant le XVIIIe siècle",{k:"III"},[
+    L("Améliorer la circulation et embellir la ville"),
+    L("Partisans et adversaires de l’urbanisme de l’ouverture : le cas de Caen"),
+    L("Une cristallisation sur une question majeure : « l’exil des morts » (Philippe Ariès)")])]),
+  G("L’économie urbaine : structures et dynamiques",{k:"Cours 6"},[
+   G("Structures et fonctions économiques de la ville moderne",{k:"I"},[
+    L("L’emprise économique de la ville sur le plat pays"),
+    L("La demande croissante des marchés urbains et la mise en place de spécialisations agricoles"),
+    L("L’organisation du travail urbain et le rôle économique des corporations"),
+    L("Les lieux et les espaces des échanges"),
+    L("Urbanisme et commerce à Bordeaux et à Nantes au XVIIIe siècle")]),
+   G("Les dynamiques d’une grande ville portuaire : le cas de Venise",{k:"II"},[
+    L("Les fondements durables de l’économie vénitienne"),
+    L("La question du déclin économique de Venise aux XVIIe et XVIIIe siècles"),
+    L("Une dimension fondamentale : le rôle économique du patriciat vénitien")])])
+ ]},
+ {id:"appro-moderne",name:"Approfondissement Histoire moderne",short:"Appro. moderne",group:"Histoire moderne",complete:false,known:"4/8",items:[
+  G("L’Ancien Régime, un monde proche et lointain",{k:"Introduction"},[
+   L("Réflexion sur la chronologie",{k:"a."}),
+   L("L’Ancien Régime. Définition et bornes chronologiques",{k:"b."}),
+   L("« Ancien Régime » ou « époque moderne » ?",{k:"c."})]),
+  G("Vue d’ensemble de l’histoire politique française de l’Ancien Régime (1515-1789)",{k:"I"},[
+   L("François Ier et Henri II, souverains de la Renaissance (1515-1559)"),
+   L("Les derniers Valois puis Henri IV. Le temps des guerres de Religion (1559-1610)"),
+   L("Le « Grand Siècle ». Louis XIII et Louis XIV (1610-1715)"),
+   L("Le XVIIIe siècle. Les Lumières, Louis XV et Louis XVI (1715-1789)")]),
+  G("Etre roi de France sous l’Ancien Régime",{k:"II"},[
+   L("Devenir roi de France. Les principes de la succession"),
+   L("Le roi, un personnage sacré : Dieu et le roi"),
+   L("Les dimensions symboliques du sacre : les attributs et les fonctions du roi")]),
+  G("La jeunesse de Louis XIV. La France de Mazarin (1643-1661)",{k:"III"},[
+   L("L’héritage de Richelieu"),
+   L("Le début de la régence, à l’ombre du parlement de Paris"),
+   L("La Fronde parlementaire (1648-1649)"),
+   L("La Fronde des Princes (1650-1653)")]),
+  G("L’Etat Louis XIV",{k:"IV"},[
+   L("La prise de pouvoir de 1661"),
+   L("L’exercice du pouvoir et l’affirmation de l’absolutisme royal"),
+   L("L’Etat triomphant"),
+   L("Le roi et la protection des arts et des sciences")])
+ ]},
+ {id:"art-contemporain",name:"Histoire de l’art contemporain",short:"Art contemporain",group:"Histoire de l’art",complete:false,items:[
+  G("L’après-guerre et la guerre froide. Choix culturels et esthétiques entre l’Ouest et l’Est : École de New York, expressionnisme abstrait et réalisme socialiste",{k:"Chapitre 1"},[
+   L("Naissance d’un nouveau centre d’art occidental : New York dans le contexte de la Seconde Guerre mondiale",{k:"I",p:3}),
+   L("La guerre froide ou la guerre culturelle idéologique",{k:"II",p:11})]),
+  G("Et la colonisation dans tout cela ? Cheminements d’artistes en provenance des colonies dans l’Europe d’après-guerre : Iba Ndiaye, Christian Lattier, Ernest Mancoba",{k:"Chapitre 2"},[
+   L("Colonisation, primitivisme et arts traditionnels d’Afrique",{k:"Introduction",p:19}),
+   L("Ernest Mancoba : un artiste sud-africain en Europe",{k:"I",p:20}),
+   L("Christian Lattier : l’Ivoirien à Paris",{k:"II",p:23}),
+   L("Iba Ndiaye : le Sénégalais à Paris",{k:"III",p:25})]),
+  G("L’heure des indépendances. Naissances de nouvelles écoles, de mouvements et de festivals culturels en Afrique",{k:"Chapitre 3",sub:"Le cas de l’École de Dakar et du FESMAN 1966"},[
+   L("Au Sénégal : l’École de Dakar et le FESMAN",{k:"I",p:28})])
+ ]},
+ {id:"art-moderne",name:"Histoire de l’art moderne",short:"Art moderne",group:"Histoire de l’art",complete:true,items:[
+  L("Introduction : l’Europe au XVe siècle",{k:"0"}),
+  L("Le concours de 1401",{k:"1"}),
+  L("Le gothique international",{k:"2"}),
+  L("Donatello et la Renaissance de la sculpture à Florence",{k:"3"}),
+  L("Masaccio et la révolution de la peinture à Florence, le renouveau du retable",{k:"4"}),
+  L("Brunelleschi et Alberti. Perspective et architecture",{k:"5"}),
+  L("La redécouverte de l’antique à Rome et à Naples",{k:"6"}),
+  L("Les arts dans la péninsule ibérique, en France et en Angleterre",{k:"7"}),
+  L("Les primitifs flamands. Jan Van Eyck, Van der Weyden et les échanges Nord-Sud",{k:"8"}),
+  L("La peinture de dévotion et le portrait à Venise. Giovanni Bellini, Antonello da Messina",{k:"9"}),
+  L("Urbino, Ferrare et Mantoue. L’art des cours italiennes",{k:"10"}),
+  L("La Milan de Bramante et Léonard",{k:"11"}),
+  L("La Florence de Laurent le Magnifique. L’humanisme néoplatonicien de Botticelli et le jeune Michel-Ange",{k:"12"})
+ ]}
+];
+(function assign(){
+  const walk=(nodes,pre)=>nodes.forEach((n,i)=>{n.id=pre+"-"+i; if(n.c) walk(n.c,n.id);});
+  COURSES.forEach(c=>walk(c.items,c.id));
+})();
+const byId=Object.fromEntries(COURSES.map(c=>[c.id,c]));
+
+/* ===================== État ===================== */
+const LS_KEY="carnet-maya-v1", UI_KEY="carnet-maya-ui", PENDING_KEY="carnet-maya-pending";
+const lsGet=k=>{try{return localStorage.getItem(k);}catch(e){return null;}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v);}catch(e){}};
+const state={items:{},extras:[]};
+try{ const s=JSON.parse(lsGet(LS_KEY)||"null"); if(s){ state.items=s.items||{}; state.extras=s.extras||[]; } }catch(e){}
+let mode="pending";            // pending | sb | local
+let sb=null, readOnly=false, loaded=false, syncErr=false;
+let filter="all", confirmDel=null;
+const openNotes=new Set();
+const dirty=new Set(), timers={};
+let pend=new Set(); try{ pend=new Set(JSON.parse(lsGet(PENDING_KEY)||"[]")); }catch(e){}
+let collapsed=new Set();
+try{ const u=JSON.parse(lsGet(UI_KEY)||"{}"); collapsed=new Set(u.collapsed||[]); if(u.filter) filter=u.filter; }catch(e){}
+function saveUI(){ lsSet(UI_KEY,JSON.stringify({collapsed:[...collapsed],filter})); }
+function saveLocal(){ lsSet(LS_KEY,JSON.stringify(state)); }
+function savePend(){ lsSet(PENDING_KEY,JSON.stringify([...pend])); }
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const st=id=>(state.items[id]&&state.items[id].s)||"todo";
+const note=id=>(state.items[id]&&state.items[id].n)||"";
+
+function treeOf(c){
+  const top=new Set(c.items.filter(n=>n.c).map(n=>n.id));
+  const bySec={};
+  state.extras.filter(e=>e.course===c.id).sort((a,b)=>(a.created||0)-(b.created||0)).forEach(e=>{
+    const s=top.has(e.sec)?e.sec:"";
+    (bySec[s]=bySec[s]||[]).push({id:"x-"+e.id,t:e.title,extra:e});
+  });
+  return c.items.map(n=>n.c&&bySec[n.id]?{...n,c:[...n.c,...bySec[n.id]]}:n).concat(bySec[""]||[]);
+}
+const leaves=nodes=>nodes.flatMap(n=>n.c?leaves(n.c):[n]);
+function stats(list){
+  let d=0,r=0; list.forEach(l=>{const s=st(l.id); if(s==="done")d++; else if(s==="review")r++;});
+  return {t:list.length,d,r,todo:list.length-d-r};
+}
+function barHTML(s){
+  const pd=s.t?s.d/s.t*100:0, pr=s.t?s.r/s.t*100:0;
+  return `<span class="bar"><span class="d" style="width:${pd}%"></span><span class="r" style="width:${pr}%"></span></span>`;
+}
+
+/* Dates */
+const today=()=>{const d=new Date(); return new Date(d.getFullYear(),d.getMonth(),d.getDate());};
+const pd=s=>{const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d);};
+const fd=(s,o={day:"numeric",month:"short"})=>pd(s).toLocaleDateString("fr-FR",o);
+const days=s=>Math.round((pd(s)-today())/86400000);
+function dueBadge(l){
+  if(!l.due) return "";
+  const s=st(l.id);
+  if(s==="done") return `<span class="badge ok">Rendu</span>`;
+  if(l.open && days(l.open)>0) return `<span class="badge">Ouvre dans ${days(l.open)} j</span>`;
+  const n=days(l.due);
+  if(n<0) return `<span class="badge late">Date dépassée</span>`;
+  if(n===0) return `<span class="badge late">Dépôt aujourd’hui</span>`;
+  if(n<=7) return `<span class="badge soon">J-${n}</span>`;
+  return `<span class="badge">J-${n}</span>`;
+}
+
+/* Icônes */
+const I={
+ chk:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+ mark:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4.5l5 5-8.5 8.5H6v-5z"/><path d="M4 21h9"/></svg>',
+ note:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h14v11l-5 5H5z"/><path d="M14 20v-5h5"/><path d="M8.5 9h7M8.5 12.5h4"/></svg>',
+ chev:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>',
+ del:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13"/></svg>'
+};
+
+/* ===================== Rendu ===================== */
+const $=s=>document.querySelector(s);
+const route=()=>{const h=decodeURIComponent(location.hash.slice(1)); return (h==="revoir"||byId[h])?h:"apercu";};
+const dis=()=>readOnly?" disabled":"";
+
+function rowHTML(l,c,opts={}){
+  const s=st(l.id), n=note(l.id), open=openNotes.has(l.id);
+  const extra=!!l.extra;
+  const k=l.k?`<span class="k">${esc(l.k)}</span>`:"";
+  const ctx=opts.ctx?`<a class="crs" href="#${c.id}">${esc(c.short||c.name)}${opts.ctx!==true?" · "+esc(opts.ctx):""}</a><br>`:"";
+  let meta="";
+  if(l.due) meta=`<div class="meta"><span>Ouverture ${fd(l.open)}</span><span>Dépôt ${fd(l.due)}</span>${dueBadge(l)}</div>`;
+  const when=(s!=="todo"&&state.items[l.id]&&state.items[l.id].u)?`<span class="when">${s==="done"?"fait":"marqué"} le ${new Date(state.items[l.id].u).toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</span>`:"";
+  if(when) meta=meta?meta.replace(/<\/div>$/,when+"</div>"):`<div class="meta">${when}</div>`;
+  const delBtn=extra?`<button class="ab del${confirmDel===l.id?" confirm":""}" data-act="del" aria-label="Supprimer cet élément ajouté"${dis()}>${I.del}<span class="lb">${confirmDel===l.id?"Confirmer":""}</span></button>`:"";
+  return `<div class="row s-${s}" data-id="${l.id}">
+    <button class="chk" data-act="done" aria-pressed="${s==="done"}" aria-label="${s==="done"?"Marquer à faire":"Marquer comme fait"}"${dis()}>${I.chk}</button>
+    <div class="body">${ctx}<div class="title">${k}<span class="t">${esc(l.t)}</span>${l.fr?`<span class="pg">${esc(l.fr)}</span>`:""}${l.p?`<span class="pg">p. ${l.p}</span>`:""}${extra?`<span class="xt">ajouté</span>`:""}</div>
+      ${meta}
+      ${n&&!open?`<p class="npv">${esc(n)}</p>`:""}
+    </div>
+    <div class="acts">
+      <button class="ab rv" data-act="review" aria-pressed="${s==="review"}" title="À retravailler"${dis()}>${I.mark}<span class="lb">À retravailler</span></button>
+      <button class="ab" data-act="note" aria-expanded="${open}" aria-label="Note" title="Note">${I.note}<span class="lb">Note</span>${n?'<i class="dot"></i>':""}</button>
+      ${delBtn}
+    </div>
+    ${open?`<div class="ned"><textarea id="note-${l.id}" data-note="${l.id}" placeholder="Ce qui bloque, les pages à relire, une question pour le prof…"${readOnly?" readonly":""}>${esc(n)}</textarea>
+      <div class="nfoot"><span id="sv-${l.id}">${n?"Enregistré":""}</span><button class="lnk" data-act="note">Fermer</button></div></div>`:""}
+  </div>`;
+}
+
+function match(l){ return filter==="all"||st(l.id)===filter; }
+
+function nodesHTML(nodes,c,depth){
+  return nodes.map(n=>{
+    if(!n.c) return match(n)?rowHTML(n,c):"";
+    const ls=leaves(n.c), sm=stats(ls);
+    if(filter!=="all" && !ls.some(match)) return "";
+    const closed=collapsed.has(n.id)&&filter==="all";
+    return `<section class="grp${closed?" closed":""}" data-g="${n.id}">
+      <button class="ghead" data-act="grp" aria-expanded="${!closed}">
+        <span class="chev">${I.chev}</span>
+        <span class="gt">${n.k?`<span class="k">${esc(n.k)}</span>`:""}<b>${esc(n.t)}</b>${n.sub?`<small>${esc(n.sub)}</small>`:""}</span>
+        <span class="gc${sm.d===sm.t?" all":""}">${sm.d}/${sm.t}</span>
+      </button>
+      <div class="gbody">${nodesHTML(n.c,c,depth+1)}</div>
+    </section>`;
+  }).join("");
+}
+
+function courseHTML(c){
+  const tree=treeOf(c), ls=leaves(tree), s=stats(ls);
+  const cnId="c-"+c.id, cn=note(cnId);
+  const inc=c.complete?`<span class="tag ok-t">Programme complet</span>`:`<span class="tag inc-t">Liste incomplète${c.known?" ("+c.known+")":""} : ajoute les séances suivantes en bas</span>`;
+  const f=[["all","Tout",s.t],["todo","À faire",s.todo],["done","Fait",s.d],["review","À retravailler",s.r]];
+  const body=nodesHTML(tree,c,0);
+  const secs=c.items.filter(n=>n.c);
+  return `<div class="chead">
+      <div><div class="eyebrow">${esc(c.group)}</div><h2 class="h2">${esc(c.name)}</h2></div>
+      <div class="tags">${inc}</div>
+      <div class="prog"><span class="track">${barHTML(s)}</span><span class="lbl"><b>${s.d}</b> fait${s.d>1?"s":""} sur ${s.t} · <b>${s.r}</b> à retravailler · ${s.t?Math.round(s.d/s.t*100):0} %</span></div>
+    </div>
+    <details class="cnote">
+      <summary>${I.note} Notes sur la matière <span class="pv">${cn?esc(cn.split("\n")[0]):"dates de partiel, consignes, conseils du prof…"}</span></summary>
+      <div class="in"><textarea id="note-${cnId}" data-note="${cnId}" placeholder="Dates de partiel, consignes, bibliographie, conseils du prof…"${readOnly?" readonly":""}>${esc(cn)}</textarea>
+      <div class="nfoot"><span id="sv-${cnId}"></span></div></div>
+    </details>
+    <div class="filters" role="group" aria-label="Filtrer">${f.map(([v,lab,n])=>`<button class="fb" data-act="filter" data-f="${v}" aria-pressed="${filter===v}">${lab}<span class="n">${n}</span></button>`).join("")}</div>
+    <div class="sheet">${body||`<div class="empty">Rien dans cette catégorie pour l’instant.</div>`}</div>
+    ${readOnly?"":`<form class="addf" id="addf" data-course="${c.id}">
+      <label for="add-title">Ajouter une séance, un chapitre ou une lecture${c.complete?"":" (pour compléter la liste)"}</label>
+      ${secs.length?`<select id="add-sec" aria-label="Où l’ajouter"><option value="">À la fin de la liste</option>${secs.map(n=>`<option value="${n.id}">Dans ${esc((n.k?n.k+" : ":"")+n.t).slice(0,70)}</option>`).join("")}</select>`:""}
+      <input id="add-title" type="text" maxlength="300" placeholder="${c.id==="francais"?"Semaine 8 : …":"Titre de la séance"}" autocomplete="off">
+      <button class="btn" type="submit">Ajouter</button>
+    </form>`}`;
+}
+
+function reviewHTML(){
+  const groups=COURSES.map(c=>({c,ls:leaves(treeOf(c)).filter(l=>st(l.id)==="review")})).filter(g=>g.ls.length);
+  const total=groups.reduce((a,g)=>a+g.ls.length,0);
+  return `<div class="chead"><div><div class="eyebrow">Toutes les matières</div><h2 class="h2">À retravailler</h2></div>
+    <p style="margin:0;color:var(--muted)">${total?`${total} point${total>1?"s":""} surligné${total>1?"s":""}. Coche le rond quand c’est acquis.`:"Rien à retravailler pour le moment. Utilise le surligneur sur une séance pour la retrouver ici."}</p></div>
+    ${groups.map(g=>`<h3 class="h3" style="margin-top:18px">${esc(g.c.name)}</h3><div class="sheet list">${g.ls.map(l=>rowHTML(l,g.c)).join("")}</div>`).join("")}`;
+}
+
+function overviewHTML(){
+  const all=COURSES.map(c=>({c,s:stats(leaves(treeOf(c)))}));
+  const ang=byId["anglais"], al=leaves(treeOf(ang));
+  const rev=COURSES.flatMap(c=>leaves(treeOf(c)).filter(l=>st(l.id)==="review").map(l=>({l,c})));
+  const groups=[...new Set(COURSES.map(c=>c.group))];
+  return `<div class="ov">
+    <section>
+      <div class="eyebrow">Anglais</div><h2 class="h2" style="margin-bottom:12px">Dépôts des tâches finales</h2>
+      <div class="sheet tl">${al.map(l=>{
+        const done=st(l.id)==="done";
+        return `<div class="tli${done?" is-done":""}" data-id="${l.id}"><div class="dd">${fd(l.due)}<small>dépôt</small></div>
+          <div class="tt"><span class="k">${esc(l.k)}</span>${esc(l.t)}${l.fr?`<span class="pg">${esc(l.fr)}</span>`:""}<div class="meta">Ouverture ${fd(l.open)}</div></div>${dueBadge(l)}</div>`;}).join("")}</div>
+    </section>
+    <section>
+      <div class="eyebrow">Avancement</div><h2 class="h2" style="margin-bottom:6px">Où j’en suis</h2>
+      <div class="legend" style="margin-bottom:12px"><span><i style="background:var(--done)"></i>Fait</span><span><i style="background:var(--hl-bar)"></i>À retravailler</span><span><i style="background:var(--line)"></i>À faire</span></div>
+      ${groups.map(gname=>`<div class="cards" style="margin-bottom:12px">${all.filter(x=>x.c.group===gname).map(({c,s})=>`
+        <a class="card" href="#${c.id}"><div><div class="cg">${esc(c.group)}</div><div class="cn">${esc(c.name)}${c.complete?"":'<span class="inc" title="Liste incomplète"></span>'}</div></div>
+        <div class="track">${barHTML(s)}</div>
+        <div class="cs"><span><b>${s.d}</b>/${s.t} faits</span>${s.r?`<span class="rv">${s.r} à retravailler</span>`:""}${c.complete?"":"<span>liste incomplète</span>"}</div></a>`).join("")}</div>`).join("")}
+    </section>
+    <section>
+      <div class="eyebrow">Surligné</div><h2 class="h2" style="margin-bottom:12px">À retravailler</h2>
+      ${rev.length?`<div class="sheet list">${rev.slice(0,6).map(({l,c})=>rowHTML(l,c,{ctx:true})).join("")}</div>${rev.length>6?`<p><a href="#revoir" class="lnk">Voir les ${rev.length} points</a></p>`:""}`
+       :`<div class="sheet"><div class="empty">Rien de surligné pour l’instant. Dans une matière, le bouton surligneur sur une séance la fait apparaître ici.</div></div>`}
+    </section>
+  </div>`;
+}
+
+function navHTML(r){
+  const rv=COURSES.reduce((a,c)=>a+stats(leaves(treeOf(c))).r,0);
+  let h=`<a class="nv${r==="apercu"?" cur":""}" href="#apercu"><span class="nm">Vue d’ensemble</span></a>
+    <a class="nv${r==="revoir"?" cur":""}" href="#revoir"><span class="nm">À retravailler</span>${rv?`<span class="cnt">${rv}</span>`:""}</a>`;
+  let g="";
+  COURSES.forEach(c=>{
+    if(c.group!==g){g=c.group; h+=`<div class="ngrp">${esc(g)}</div>`;}
+    const s=stats(leaves(treeOf(c)));
+    h+=`<a class="nv${r===c.id?" cur":""}" href="#${c.id}"${r===c.id?' aria-current="page"':""}><span class="nm">${esc(c.short||c.name)}${c.complete?"":'<span class="inc" title="Liste incomplète"></span>'}</span><span class="frac">${s.d}/${s.t}</span><span class="mini">${barHTML(s)}</span></a>`;
+  });
+  return h;
+}
+
+function kpisHTML(){
+  const ls=COURSES.flatMap(c=>leaves(treeOf(c)));
+  const s=stats(ls);
+  const next=leaves(byId["anglais"].items).filter(l=>st(l.id)!=="done"&&days(l.due)>=0).sort((a,b)=>days(a.due)-days(b.due))[0];
+  const sc=syncState();
+  return `<div class="kpi done"><b>${s.d}<small style="font-size:14px;color:var(--muted);font-weight:500">/${s.t}</small></b><span>faits</span></div>
+    <div class="kpi rev"><b>${s.r}</b><span>à retravailler</span></div>
+    ${next?`<div class="kpi"><b>${days(next.due)===0?"Auj.":"J-"+days(next.due)}</b><span>${esc(next.k)} anglais</span></div>`:""}
+    <span class="sync ${sc[0]}"><i></i>${sc[1]}</span>`;
+}
+
+function render(){
+  const r=route();
+  const ae=document.activeElement;
+  const keep=ae&&ae.id&&(ae.tagName==="TEXTAREA"||ae.tagName==="INPUT")?{id:ae.id,a:ae.selectionStart,b:ae.selectionEnd,v:ae.tagName==="INPUT"?ae.value:null}:null;
+  const cnOpen=document.querySelector(".cnote")?.open;
+  const sec=$("#add-sec")?.value;
+  $("#today").textContent=`${new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})} · tous tes cours, ce qui est fait, ce qui reste, ce qu’il faut revoir.`;
+  $("#kpis").innerHTML=kpisHTML();
+  $("#nav").innerHTML=navHTML(r);
+  $("#main").innerHTML=r==="apercu"?overviewHTML():r==="revoir"?reviewHTML():courseHTML(byId[r]);
+  if(cnOpen && $(".cnote")) $(".cnote").open=true;
+  const nv=$("#nav"), cur=nv.querySelector(".nv.cur"); if(cur && nv.scrollWidth>nv.clientWidth) nv.scrollLeft=Math.max(0,cur.offsetLeft-nv.offsetLeft-16);
+  if(sec && $("#add-sec")) $("#add-sec").value=sec;
+  if(keep){const el=document.getElementById(keep.id); if(el){ if(keep.v!==null) el.value=keep.v; el.focus(); try{el.setSelectionRange(keep.a,keep.b);}catch(e){} }}
+  document.title="L1 - carnet de suivi de Maya";
+}
+
+/* ===================== Synchronisation ===================== */
+function syncState(){
+  if(mode==="local") return ["warn","Enregistré sur cet appareil"];
+  if(mode==="pending") return ["","Connexion…"];
+  if(syncErr) return ["err",pend.size?`Hors ligne · ${pend.size} en attente`:"Hors ligne"];
+  if(pend.size) return ["warn","Enregistrement…"];
+  return loaded?["ok","Synchronisé"]:["","Chargement…"];
+}
+function refreshKpis(){ $("#kpis").innerHTML=kpisHTML(); }
+function showBanner(t){ const b=$("#banner"); b.textContent=t; b.hidden=false; }
+
+function persist(id){ saveLocal(); if(mode==="local") return; pend.add("e:"+id); savePend(); flush(); }
+function persistExtra(eid){ saveLocal(); if(mode==="local") return; pend.add("a:"+eid); savePend(); flush(); }
+
+let flushing=false, flushAgain=false;
+async function flush(){
+  if(mode!=="sb"){ refreshKpis(); return; }
+  if(flushing){ flushAgain=true; return; }
+  flushing=true; refreshKpis();
+  try{
+    for(const key of [...pend]){
+      const id=key.slice(2); let res;
+      if(key[0]==="e"){
+        const cur=state.items[id];
+        res=cur?await sb.from("etat").upsert({id,s:cur.s||"todo",n:cur.n||"",u:cur.u||Date.now()})
+               :await sb.from("etat").delete().eq("id",id);
+      } else {
+        const e=state.extras.find(x=>x.id===id);
+        res=e?await sb.from("ajouts").upsert({id,course:e.course,sec:e.sec||"",title:e.title,created:e.created||Date.now()})
+             :await sb.from("ajouts").delete().eq("id",id);
+      }
+      if(res.error) throw res.error;
+      pend.delete(key); savePend();
+      const sv=document.getElementById("sv-"+id); if(sv) sv.textContent="Enregistré";
+    }
+    syncErr=false;
+  }catch(e){ syncErr=true; console.warn("Synchronisation", e); }
+  flushing=false; refreshKpis();
+  if(flushAgain){ flushAgain=false; flush(); }
+}
+
+async function pull(){
+  const [a,b]=await Promise.all([
+    sb.from("etat").select("id,s,n,u"),
+    sb.from("ajouts").select("id,course,sec,title,created")
+  ]);
+  if(a.error||b.error) throw (a.error||b.error);
+  const items={};
+  a.data.forEach(r=>{ items[r.id]={s:r.s,n:r.n||"",u:Number(r.u)||0}; });
+  pend.forEach(k=>{ if(k[0]==="e"){ const id=k.slice(2); if(state.items[id]) items[id]=state.items[id]; else delete items[id]; } });
+  dirty.forEach(id=>{ if(state.items[id]) items[id]=state.items[id]; });
+  let extras=b.data.map(r=>({id:r.id,course:r.course,sec:r.sec||"",title:r.title,created:Number(r.created)||0}));
+  pend.forEach(k=>{ if(k[0]==="a"){ const id=k.slice(2); const loc=state.extras.find(x=>x.id===id); extras=extras.filter(x=>x.id!==id); if(loc) extras.push(loc); } });
+  state.items=items; state.extras=extras;
+  loaded=true; syncErr=false; saveLocal(); render();
+}
+let pullTimer=null;
+function schedulePull(){ clearTimeout(pullTimer); pullTimer=setTimeout(()=>{ if(mode==="sb") pull().catch(()=>{ syncErr=true; refreshKpis(); }); },400); }
+
+function setStatus(id,s){
+  const cur=state.items[id]||{};
+  state.items[id]={...cur,s,u:Date.now()};
+  persist(id); render();
+}
+function flushNote(id){ if(timers[id]){ clearTimeout(timers[id]); delete timers[id]; dirty.delete(id); persist(id);} }
+function newId(){ return "l"+Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
+function addExtra(courseId,sec,title){
+  const e={id:newId(),course:courseId,sec:sec||"",title:title.slice(0,300),created:Date.now()};
+  state.extras.push(e); persistExtra(e.id); render();
+}
+function delExtra(xid){
+  const eid=xid.slice(2);
+  state.extras=state.extras.filter(e=>e.id!==eid);
+  delete state.items[xid];
+  persistExtra(eid); persist(xid); render();
+}
+
+/* ===================== Événements ===================== */
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]"); if(!b) return;
+  const act=b.dataset.act, row=b.closest("[data-id]"), id=row&&row.dataset.id;
+  if(act!=="del") confirmDel=null;
+  if(act==="done"){ setStatus(id, st(id)==="done"?"todo":"done"); }
+  else if(act==="review"){ setStatus(id, st(id)==="review"?"todo":"review"); }
+  else if(act==="note"){
+    if(openNotes.has(id)){ flushNote(id); openNotes.delete(id); render(); }
+    else { openNotes.add(id); render(); const t=document.getElementById("note-"+id); if(t){ t.focus(); t.setSelectionRange(t.value.length,t.value.length);} }
+  }
+  else if(act==="grp"){ const g=b.closest("[data-g]").dataset.g; if(filter!=="all") return; collapsed.has(g)?collapsed.delete(g):collapsed.add(g); saveUI(); render(); }
+  else if(act==="filter"){ filter=b.dataset.f; saveUI(); render(); }
+  else if(act==="del"){ if(confirmDel===id){ confirmDel=null; delExtra(id);} else { confirmDel=id; render(); } }
+});
+document.addEventListener("input",e=>{
+  const t=e.target; if(!t.dataset||!t.dataset.note||readOnly) return;
+  const id=t.dataset.note;
+  state.items[id]={s:"todo",...(state.items[id]||{}),n:t.value};
+  dirty.add(id);
+  const sv=document.getElementById("sv-"+id); if(sv) sv.textContent="…";
+  clearTimeout(timers[id]);
+  timers[id]=setTimeout(()=>{ delete timers[id]; dirty.delete(id); persist(id); if(mode==="local"&&sv) sv.textContent="Enregistré"; },700);
+});
+document.addEventListener("focusout",e=>{ const t=e.target; if(t.dataset&&t.dataset.note) flushNote(t.dataset.note); });
+document.addEventListener("submit",e=>{
+  if(e.target.id==="loginf"){ e.preventDefault(); doLogin(); return; }
+  if(e.target.id!=="addf") return; e.preventDefault();
+  const title=$("#add-title").value.trim(); if(!title) { $("#add-title").focus(); return; }
+  addExtra(e.target.dataset.course, $("#add-sec")?.value||"", title);
+  const i=$("#add-title"); if(i){ i.value=""; i.focus(); }
+});
+window.addEventListener("hashchange",()=>{ confirmDel=null; render(); window.scrollTo({top:0}); });
+
+/* ===================== Connexion et démarrage ===================== */
+function showLogin(){ $("#login").hidden=false; setTimeout(()=>$("#lg-email")?.focus(),50); }
+async function doLogin(){
+  const email=$("#lg-email").value.trim(), password=$("#lg-pass").value, err=$("#lg-err"), btn=$("#lg-btn");
+  err.textContent=""; btn.disabled=true; btn.textContent="Connexion…";
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  btn.disabled=false; btn.textContent="Se connecter";
+  if(error){ err.textContent=/fetch|network/i.test(error.message||"")?"Pas de connexion internet. Réessaie dans un instant.":"Adresse e-mail ou mot de passe incorrect."; return; }
+  $("#login").hidden=true; goOnline();
+}
+let subscribed=false;
+async function goOnline(){
+  mode="sb"; refreshKpis();
+  try{ await pull(); }catch(e){ syncErr=true; refreshKpis(); }
+  flush();
+  if(!subscribed){
+    subscribed=true;
+    try{
+      sb.channel("carnet")
+        .on("postgres_changes",{event:"*",schema:"public",table:"etat"},schedulePull)
+        .on("postgres_changes",{event:"*",schema:"public",table:"ajouts"},schedulePull)
+        .subscribe();
+    }catch(e){}
+    document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"){ flush(); schedulePull(); } });
+    window.addEventListener("online",()=>{ flush(); schedulePull(); });
+    setInterval(()=>{ if(document.visibilityState==="visible"){ if(pend.size) flush(); schedulePull(); } },60000);
+  }
+}
+$("#logout")?.addEventListener("click",async()=>{ if(sb){ await sb.auth.signOut(); } lsSet(LS_KEY,""); lsSet(PENDING_KEY,"[]"); location.reload(); });
+
+render();
+(async()=>{
+  const cfg=window.CARNET_CONFIG||{};
+  if(!window.supabase || !cfg.url || /COLLER/.test(cfg.url+cfg.key)){
+    mode="local";
+    showBanner("Sauvegarde en ligne pas encore configurée : les changements restent sur cet appareil.");
+    $("#logout").hidden=true; render(); return;
+  }
+  sb=window.supabase.createClient(cfg.url,cfg.key,{auth:{persistSession:true,autoRefreshToken:true,storageKey:"carnet-maya-auth"}});
+  const {data}=await sb.auth.getSession();
+  if(!data||!data.session){ showLogin(); refreshKpis(); return; }
+  goOnline();
+})();
+</script>
+</body>
+</html>
